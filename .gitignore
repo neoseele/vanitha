@@ -16,3 +16,9 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+# others
+.csv
+.log
+.txt
+.yaml
