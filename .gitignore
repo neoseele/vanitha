@@ -18,7 +18,7 @@ _yardoc
 doc/
 
 # others
-.csv
-.log
-.txt
-.yaml
+*.csv
+*.log
+*.txt
+*.yaml
