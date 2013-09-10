@@ -16,6 +16,9 @@ class Firm
   def sort_matches
     @matches.sort_by! { |obj| obj.diff }
   end
+  def to_arr
+    [@gvkey,@date,@lpermno,@size,@year]
+  end
 end
 
 class Diff
@@ -37,6 +40,8 @@ class Matcher < Base
   end
 
   def match(source, reference)
+    no_match = [['gvkey','date','lpermono','size','year']]
+
     banks = load(source)
     controls = load(reference)
 
@@ -52,6 +57,7 @@ class Matcher < Base
 
       if b.matches.length == 0
         err("no match found for bank(year): #{b.id} (diff <= #{(LIMIT*100).round}%)")
+        no_match << b.to_arr
         next
       end
 
@@ -65,6 +71,8 @@ class Matcher < Base
       # remove the best match from the reference table
       controls.delete(b.matches[0].ref_id)
     end
+
+    csv_out('no_match.csv', no_match)
   end
 end
 

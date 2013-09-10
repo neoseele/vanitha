@@ -41,9 +41,10 @@ class Base
     @stdout.error msg
   end
 
-  def csv_out(path)
+  def csv_out(path, content=nil)
+    content = @csv if content.nil?
     CSV.open(path, 'wb') do |csv|
-      @csv.each do |arr|
+      content.each do |arr|
         csv << arr
       end
     end
