@@ -76,6 +76,11 @@ class Matcher < Base
   end
 end
 
+def usage
+  puts @opts
+  exit 1
+end
+
 ### constants
 LIMIT = 0.3
 
