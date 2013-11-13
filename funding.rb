@@ -15,7 +15,7 @@ class Company
   attr_accessor :name, :type, :incorporated, :ticker, :year, :info
 
   # parse from div.quick-look > div.grid_10
-  def type(doc)
+  def load1(doc)
     pp doc
     @type = doc.css('strong')[0].text.strip
   end
