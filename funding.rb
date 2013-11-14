@@ -14,42 +14,43 @@ end
 class Company
   attr_accessor :name, :type, :incorporated, :ticker, :year, :info
 
-  # parse from div.quick-look > div.grid_10
-  def load1(doc)
-    pp doc
-    @type = doc.css('strong')[0].text.strip
-  end
+  def load(doc)
+    main = doc.css('div#main-content')
+    grid = main.css('div.quick-look > div.grid_10')
 
-  def incorporated(doc)
-    tmp = doc.css('span[itemprop=foundingDate]')
-    @incorporate = tmp.text.strip if tmp.any?
-  end
+    @type = grid.css('strong')[0].text.strip
 
-  def ticker(doc)
-    tmp = doc.css('span[itemprop=tickerSymbol]')
-    @ticker = tmp.text.strip if tmp.any?
-  end
+    i = grid.css('span[itemprop=foundingDate]')
+    @incorporate = i.text.strip if i.any?
 
-  # parse from div#main-content
-  def info(doc)
-    # "key dates" are wrapped in the only "dl" in the page
-    dl = doc.css('dl')
+    t = grid.css('span[itemprop=tickerSymbol]')
+    @ticker = t.text.strip if t.any?
+
+    dl = main.css('dl')
     if dl.any?
-      pp dl.css('dt')
-      pp dl.css('dd')
+      @year = dl.css('dt')[0].text.strip.gsub(/[^\d]+/,'') # remove anything that is not digit
+      @info = dl.css('dd')[0].text.strip
     end
   end
+
 end
 
 class Fetcher < Base
 
-  def get_doc(url)
-    Nokogiri::HTML(Net::HTTP.get(URI.parse(url)))
+  def get_http
+    url = URI.parse('http://www.fundinguniverse.com')
+    http = Net::HTTP.new url.host, url.port
+    http.read_timeout = 500
+    http
+  end
+
+  def get_doc(http, path)
+    Nokogiri::HTML(http.get2(path).body)
   end
 
   def get_total(doc)
     total = 0
-    doc.css('.pagination > a[href]').each do |a|
+    doc.css('div.pagination > a[href]').each do |a|
       t = a.text.strip
       next unless t.is_i?
       n = t.to_i
@@ -67,30 +68,28 @@ class Fetcher < Base
   def create_company_obj(name, doc)
     c = Company.new
     c.name = name
-
-    grid10 = doc.css('div.quick-look > div.grid_10')
-    c.type grid10
-    puts 1
-    c.incorporated grid10
-    c.ticker grid10
-
-    main = doc.css('div#main-content')
-    c.info main
+    c.load doc
     c
   end
 
   def run
-    total = get_total(get_doc(PAGE))
+    # create a Net::HTTP obj
+    http = get_http
 
-    (1..1).each do |n|
-      doc = get_doc("#{PAGE}?page=#{n.to_s}")
+    # total number of pages
+    total = get_total(get_doc(http, '/company-histories/'))
+    puts "Total Pages: [#{total}]"
+
+    (1..total).each do |n|
+      puts "Page: [#{n.to_s}] >>"
+      doc = get_doc(http, "/company-histories/?page=#{n.to_s}")
+
       get_company_links(doc).each do |name,link|
         puts '* fetching ' + name
-        c = create_company_obj(name, get_doc(link))
-        pp c
-#        @csv << [c.name, c.type, c.incorporated, c.ticker, c.year, c.info]
-        break
+        c = create_company_obj(name, get_doc(http, URI(link).path))
+        @csv << [c.name, c.type, c.incorporated, c.ticker, c.year, c.info, link]
       end
+      break
     end
   end
 end
@@ -110,14 +109,11 @@ options = OpenStruct.new
 end
 @opts.parse! rescue usage
 
-### constants
-PAGE = 'http://www.fundinguniverse.com/company-histories/'
-
 ### main
 #usage if options.source.nil?
 f = Fetcher.new
-f.csv = [["name","type","incorporate","year","info"]]
+f.csv = [['name','type','incorporate','ticker','year','info','url']]
 f.run
-#f.csv_out 'result.csv'
-pp f.csv
+f.csv_out 'result.csv'
+#pp f.csv
 
