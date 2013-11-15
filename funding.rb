@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
 require './base.rb'
-require 'net/http'
 require 'uri'
+require 'open-uri'
 require 'nokogiri'
+#require 'watir'
 
 class String
   def is_i?
@@ -12,7 +13,12 @@ class String
 end
 
 class Company
-  attr_accessor :name, :type, :incorporated, :ticker, :year, :info
+  attr_accessor :name, :type, :incorporated, :ticker, :year, :info, :url
+
+  def initialize(name, url)
+    @name = name
+    @url = url
+  end
 
   def load(doc)
     main = doc.css('div#main-content')
@@ -32,20 +38,13 @@ class Company
       @info = dl.css('dd')[0].text.strip
     end
   end
-
 end
 
 class Fetcher < Base
 
-  def get_http
-    url = URI.parse('http://www.fundinguniverse.com')
-    http = Net::HTTP.new url.host, url.port
-    http.read_timeout = 500
-    http
-  end
-
-  def get_doc(http, path)
-    Nokogiri::HTML(http.get2(path).body)
+  def get_doc(url)
+    page = open(url, &:read)
+    Nokogiri::HTML(page)
   end
 
   def get_total(doc)
@@ -59,35 +58,36 @@ class Fetcher < Base
     total
   end
 
-  def get_company_links(doc)
+  def get_company_urls(doc)
     doc.css('ul.company-list > li > a[href]').each_with_object({}) do |a, hash|
       hash[a.text.strip] = a['href']
     end
   end
 
   def create_company_obj(name, doc)
-    c = Company.new
-    c.name = name
+    c = Company.new(name)
     c.load doc
     c
   end
 
   def run
-    # create a Net::HTTP obj
-    http = get_http
-
     # total number of pages
-    total = get_total(get_doc(http, '/company-histories/'))
+    total = get_total(get_doc('http://www.fundinguniverse.com/company-histories/'))
     puts "Total Pages: [#{total}]"
 
     (1..total).each do |n|
       puts "Page: [#{n.to_s}] >>"
-      doc = get_doc(http, "/company-histories/?page=#{n.to_s}")
+      doc = get_doc("http://www.fundinguniverse.com/company-histories/?page=#{n.to_s}")
 
-      get_company_links(doc).each do |name,link|
-        puts '* fetching ' + name
-        c = create_company_obj(name, get_doc(http, URI(link).path))
-        @csv << [c.name, c.type, c.incorporated, c.ticker, c.year, c.info, link]
+      get_company_urls(doc).each do |name,url|
+        c = Company.new(name, url)
+        begin
+          c.load get_doc(url)
+          info("#{name} fetched")
+        rescue
+          err("failed to load #{url}")
+        end
+        @csv << [c.name, c.type, c.incorporated, c.ticker, c.year, c.info, url]
       end
       break
     end
@@ -115,5 +115,3 @@ f = Fetcher.new
 f.csv = [['name','type','incorporate','ticker','year','info','url']]
 f.run
 f.csv_out 'result.csv'
-#pp f.csv
-
