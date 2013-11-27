@@ -89,7 +89,6 @@ class Fetcher < Base
         end
         @csv << [c.name, c.type, c.incorporated, c.ticker, c.year, c.info, url]
       end
-      break
     end
   end
 end
