@@ -60,4 +60,9 @@ class Base
       return ['', '']
     end
   end
+
+  def download(dest_dir, url)
+    wget = (/linux/ =~ RUBY_PLATFORM) ? 'wget' : 'wget.exe'
+    system("#{wget} -P #{dest_dir} -nc --content-disposition -t 3 \"#{url}\"")
+  end
 end
