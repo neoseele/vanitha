@@ -19,7 +19,7 @@ class Fetcher < Base
   def run
     doc = get_doc("#{SITE}/list_transcripts2")
 
-    doc.css('tr').each do |tr|
+    doc.css('table')[0].css('tr').each do |tr|
       all_td = tr.css('td')
       next unless all_td.length > 0 # skip the header row
 
