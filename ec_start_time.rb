@@ -13,8 +13,8 @@ class Extractor < Base
       transcript = File.basename(path)
       info "processing: #{transcript}"
       begin
-        first_row = CSV.read(path, {headers: true, encoding: 'UTF-8'})[0]
-        @csv << [transcript, first_row['Start Time']]
+        fr = CSV.read(path, {headers: true, encoding: 'UTF-8'})[0]
+        @csv << [fr['name'], fr['date'], fr['start_time']]
       rescue
         err "extraction failed: #{transcript}"
       end
@@ -44,6 +44,6 @@ end
 usage if options.source.nil?
 f = Extractor.new
 f.source = options.source
-f.csv = [['transcript','start_time']]
+f.csv = [['name', 'date', 'start_time']]
 f.run
 f.csv_out 'result.csv'
