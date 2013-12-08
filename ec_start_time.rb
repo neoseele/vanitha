@@ -13,7 +13,7 @@ class Extractor < Base
       transcript = File.basename(path)
       info "processing: #{transcript}"
       begin
-        fr = CSV.read(path, {headers: true, encoding: 'UTF-8'})[0]
+        fr = CSV.read(path, {headers: true, encoding: 'UTF-8'})[1]
         @csv << [fr['name'], fr['date'], fr['start_time']]
       rescue
         err "extraction failed: #{transcript}"
