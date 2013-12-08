@@ -23,10 +23,10 @@ class Fetcher < Base
       all_td = tr.css('td')
       next unless all_td.length > 0 # skip the header row
 
-      is_processed = all_td[7].text.strip.downcase == 'true'
+      is_processed = all_td[8].text.strip.downcase == 'true'
       next unless is_processed
 
-      name = all_td[0].text.strip
+      name = all_td[1].text.strip
       info "fetching #{name}"
 
       tr.css('td > a').each do |a|
