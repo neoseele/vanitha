@@ -25,11 +25,11 @@ class Worker < Base
 
   def run
     Dir.glob(File.join(@options.ec_dir,'*.csv')) do |path|
-      name = File.basename path
-      info "processing #{name}"
+      name = File.basename path, File.extname(path)
 
       out_path = File.join(@options.out_dir, File.basename(path))
       next if File.exist? out_path
+      info "processing #{name}"
 
       ecs = ec_rows path
       svs = sv_rows name
