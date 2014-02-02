@@ -9,13 +9,15 @@ class Worker < Base
 
   attr_accessor :options
 
-  def sv_rows name
-    rows = CSV.read(@options.sv, {headers: true, encoding: 'UTF-8'})
+  def read_csv path
+    CSV.read(path, {headers: true, encoding: 'UTF-8'})
+  end
+
+  def sv_rows rows, name
     rows.reject {|r| r['reason'].downcase != name.downcase}
   end
 
-  def ec_rows path
-    rows = CSV.read(path, {headers: true, encoding: 'UTF-8'})
+  def ec_rows rows
     rows.reject {|r| r['transcript_speaker'].downcase == 'operator' }
   end
 
@@ -24,21 +26,27 @@ class Worker < Base
   end
 
   def run
+    sv = read_csv @options.sv
+
     Dir.glob(File.join(@options.ec_dir,'*.csv')) do |path|
       name = File.basename path, File.extname(path)
 
-      out_path = File.join(@options.out_dir, File.basename(path))
-      next if File.exist? out_path
-      info "processing #{name}"
+      out_path = File.join(@options.out_dir, File.basename(path).gsub(' ', '_'))
+      if File.exist? out_path
+        info "#{out_path} exists, #{name} skipped"
+        next
+      else
+        info "processing #{name}"
+      end
 
-      ecs = ec_rows path
-      svs = sv_rows name
+      ecs = ec_rows read_csv(path)
+      svs = sv_rows sv, name
 
       ec_str = ecs.collect{|r| r['transcript_speaker'].downcase}.join('|')
       sv_str = svs.collect{|r| "#{r['first_nm']} #{r['surname']}".downcase}.join('|')
 
       unless ec_str.include? sv_str
-        err "can find a match for #{name}"
+        err "can't find a match for #{name}"
         next
       end
 
@@ -51,7 +59,7 @@ class Worker < Base
         @csv << h.values
         i += 1
       end
-      csv_out(File.join(@options.out_dir, File.basename(path)))
+      csv_out(out_path)
     end
   end
 end
