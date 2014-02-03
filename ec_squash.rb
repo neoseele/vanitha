@@ -146,7 +146,7 @@ rows.each do |r|
     end
 
     # increase the qa round's end_time
-    last_qa.update_end_time e
+    #last_qa.update_end_time e
   end
 
 end
