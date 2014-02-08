@@ -42,11 +42,16 @@ class Worker < Base
       ecs = ec_rows read_csv(path)
       svs = sv_rows sv, name
 
+      if svs.empty?
+        err "#{name}: can't find any rows related in #{@options.sv}, skipped."
+        next
+      end
+
       ec_str = ecs.collect{|r| r['transcript_speaker'].downcase}.join('|')
       sv_str = svs.collect{|r| "#{r['first_nm']} #{r['surname']}".downcase}.join('|')
 
       unless ec_str.include? sv_str
-        err "can't find a match for #{name}"
+        err "#{name}: speaker sequence does not match, skipped"
         next
       end
 
