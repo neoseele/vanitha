@@ -32,13 +32,17 @@ class Base
   end
 
   def info(msg)
-    @log.info msg
+    #@log.info msg
     @stdout.info msg
   end
 
   def err(msg)
     @log.error msg
     @stdout.error msg
+  end
+
+  def log(msg)
+    @log.info msg
   end
 
   def csv_out(path, content=nil)

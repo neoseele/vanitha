@@ -55,6 +55,8 @@ class Worker < Base
         next
       end
 
+      time_missing = false
+
       i = find_index(ec_str, sv_str)
       @csv = [['ticker','date','time','reason','ca','first_nm','surname','affln','firm','jobt','no_words','no_questions','no_words_having_questions','start_time','end_time']]
       svs.each do |r|
@@ -63,7 +65,17 @@ class Worker < Base
         h['end_time'] = ecs[i]['end_time']
         @csv << h.values
         i += 1
+
+        # check if time is missing
+        time_missing ||= h['start_time'].empty?
+        time_missing ||= h['end_time'].empty?
       end
+
+      if time_missing
+        err "#{name}: time is missing"
+        next
+      end
+
       csv_out(out_path)
     end
   end
