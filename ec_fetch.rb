@@ -16,24 +16,41 @@ class Fetcher < Base
     Nokogiri::HTML(page)
   end
 
+  def create_dir(name)
+    path = [@dest,name].join(File::SEPARATOR)
+    FileUtils.mkdir_p path
+    path
+  end
+
   def run
-    doc = get_doc("#{SITE}/list_transcripts2")
+    doc = get_doc("#{SITE}/transcripts/list3")
+    doc.css('table#transcript_details tbody').css('tr').each do |tr|
+      tds = tr.css('td')
 
-    doc.css('table')[0].css('tr').each do |tr|
-      all_td = tr.css('td')
-      next unless all_td.length > 0 # skip the header row
-
-      is_processed = all_td[8].text.strip.downcase == 'true'
+      is_processed = tds[8].text.strip.downcase == 'true'
       next unless is_processed
 
-      name = all_td[1].text.strip
+      # transcript name
+      name = tds[1].text.strip
       info "fetching #{name}"
 
-      tr.css('td > a').each do |a|
-        txt = a.text.strip.downcase
-        link = "#{SITE}#{a['href']}"
-        download(@dest, link) if txt == 'download'
-        download(@dest, link) if @download_mp3 && link =~ /.*download_mp3.*/
+      # every transcript has its own dir for storing the downloaded files
+      dir = create_dir(name)
+
+      begin
+        csv_link = tds[2].css('a').first['href']
+        download(dir, "#{SITE}#{csv_link}")
+      rescue
+        err "#{name}: fail to download csv"
+      end
+
+      next unless @download_mp3
+
+      begin
+        mp3_link = tds[3].css('a').first['href']
+        download(dir, mp3_link)
+      rescue
+        err "#{name}: fail to download mp3"
       end
     end
   end
