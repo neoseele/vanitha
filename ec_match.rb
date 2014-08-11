@@ -51,7 +51,7 @@ class Worker < Base
         next
       end
 
-      ec_str = ecs.collect{|r| r['transcript_speaker'].downcase}.join('|')
+      ec_str = ecs.collect{|r| r['transcript_speaker'].squeeze(' ').strip.downcase}.join('|')
       sv_str = svs.collect{|r| "#{r['first_nm']} #{r['surname']}".downcase}.join('|')
 
       unless ec_str.include? sv_str
