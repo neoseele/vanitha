@@ -18,7 +18,7 @@ class Worker < Base
   end
 
   def sv_rows rows, name
-    rows.reject {|r| r['reason'].downcase != name.downcase}
+    rows.reject {|r| r['reason'].downcase != name.downcase.squeeze(' ')}
   end
 
   def ec_rows rows
