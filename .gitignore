@@ -22,5 +22,6 @@ doc/
 *.log
 *.txt
 *.yaml
+*.swp
 data/
 out/
