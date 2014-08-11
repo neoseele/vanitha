@@ -13,6 +13,10 @@ class Worker < Base
     CSV.read(path, {headers: true, encoding: 'UTF-8'})
   end
 
+  def read_ec_csv path
+    read_csv(path).map { |r| Hash[r.map {|k,v| [k.downcase.gsub(' ','_'), v]}] }
+  end
+
   def sv_rows rows, name
     rows.reject {|r| r['reason'].downcase != name.downcase}
   end
@@ -39,7 +43,7 @@ class Worker < Base
         info "processing #{name}"
       end
 
-      ecs = ec_rows read_csv(path)
+      ecs = ec_rows read_ec_csv(path)
       svs = sv_rows sv, name
 
       if svs.empty?
