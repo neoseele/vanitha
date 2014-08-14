@@ -18,6 +18,7 @@ _yardoc
 doc/
 
 # others
+.DS_Store
 *.csv
 *.log
 *.txt
