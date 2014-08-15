@@ -5,12 +5,15 @@ require 'csv'
 require 'pp'
 require 'date'
 
+#ENCODING = 'ISO-8859-1'
+ENCODING = 'UTF-8'
+
 class Worker < Base
 
   attr_accessor :options
 
   def read_csv path
-    CSV.read(path, {headers: true, encoding: 'UTF-8'})
+    CSV.read(path, {headers: true, encoding: ENCODING})
   end
 
   def read_ec_csv path
@@ -71,8 +74,8 @@ class Worker < Base
         i += 1
 
         # check if time is missing
-        time_missing ||= h['start_time'].empty?
-        time_missing ||= h['end_time'].empty?
+        time_missing ||= h['start_time'].nil?
+        time_missing ||= h['end_time'].nil?
       end
 
       if time_missing
