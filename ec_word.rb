@@ -125,7 +125,7 @@ class Worker < Base
       out << r.to_hash.merge({'count_by_speaker' => Transcript.merge_word_frequences(ss), 'count_by_time' => Transcript.merge_word_frequences(st)}).values
 
     end
-    csv_out File.join(dir,'jump_out.csv'), out
+    csv_out File.join(dir,'out.csv'), out
   end
 end
 
