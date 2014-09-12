@@ -124,17 +124,6 @@ class Worker < Base
 
       out << r.to_hash.merge({'count_by_speaker' => Transcript.merge_word_frequences(ss), 'count_by_time' => Transcript.merge_word_frequences(st)}).values
 
-      ## debug
-      #pp reason
-      #pp j.full_name
-      #puts "start_talk_time: #{j.start_talk_time}"
-      #puts "end_talk_time: #{j.end_talk_time}"
-      #puts "matched rows: #{ss.size} (filter by speaker)"
-      #puts "matched rows: #{st.size} (filter by time)"
-      #puts "--- matched rows by time ---"
-      #st.each {|s| puts "start: #{s.start_time}; end: #{s.end_time}"}
-      #break
-      ## debug
     end
     csv_out File.join(dir,'jump_out.csv'), out
   end
