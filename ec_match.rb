@@ -16,12 +16,20 @@ class Worker < Base
     CSV.read(path, {headers: true, encoding: ENCODING})
   end
 
+  def read_sv_csv path
+    read_csv(path).each do |r|
+      reason = r['reason'].downcase
+      @@sv_data[reason] = [] unless @@sv_data.has_key? reason
+      @@sv_data[reason] << r
+    end
+  end
+
   def read_ec_csv path
     read_csv(path).map { |r| Hash[r.map {|k,v| [k.downcase.gsub(' ','_'), v]}] }
   end
 
-  def sv_rows rows, name
-    rows.reject {|r| r['reason'].downcase != name.downcase.squeeze(' ')}
+  def sv_rows name
+    data = @@sv_data.has_key?(name) ? @@sv_data[name] : []
   end
 
   def ec_rows rows
@@ -33,7 +41,7 @@ class Worker < Base
   end
 
   def run
-    sv = read_csv @options.sv
+    read_sv_csv @options.sv
 
     Dir.glob(File.join(@options.ec_dir,'*.csv')) do |path|
       name = File.basename path, File.extname(path)
@@ -46,8 +54,14 @@ class Worker < Base
         info "processing #{name}"
       end
 
+      #puts '1'
+      #pp Time.now
       ecs = ec_rows read_ec_csv(path)
-      svs = sv_rows sv, name
+      #puts '2'
+      #pp Time.now
+      svs = sv_rows name.downcase.squeeze(' ')
+      #puts '3'
+      #pp Time.now
 
       if svs.empty?
         err "#{name}: can't find any rows related in #{@options.sv}, skipped."
@@ -111,6 +125,8 @@ end
   exit
 end
 @opts.parse! rescue usage
+
+@@sv_data = {}
 
 ### main
 usage if options.sv.nil?
