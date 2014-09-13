@@ -54,14 +54,8 @@ class Worker < Base
         info "processing #{name}"
       end
 
-      #puts '1'
-      #pp Time.now
       ecs = ec_rows read_ec_csv(path)
-      #puts '2'
-      #pp Time.now
       svs = sv_rows name.downcase.squeeze(' ')
-      #puts '3'
-      #pp Time.now
 
       if svs.empty?
         err "#{name}: can't find any rows related in #{@options.sv}, skipped."
