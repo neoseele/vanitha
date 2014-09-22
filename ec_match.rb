@@ -5,20 +5,31 @@ require 'csv'
 require 'pp'
 require 'date'
 
+#ENCODING = 'ISO-8859-1'
+ENCODING = 'UTF-8'
+
 class Worker < Base
 
   attr_accessor :options
 
   def read_csv path
-    CSV.read(path, {headers: true, encoding: 'UTF-8'})
+    CSV.read(path, {headers: true, encoding: ENCODING})
+  end
+
+  def read_sv_csv path
+    read_csv(path).each do |r|
+      reason = r['reason'].downcase
+      @@sv_data[reason] = [] unless @@sv_data.has_key? reason
+      @@sv_data[reason] << r
+    end
   end
 
   def read_ec_csv path
     read_csv(path).map { |r| Hash[r.map {|k,v| [k.downcase.gsub(' ','_'), v]}] }
   end
 
-  def sv_rows rows, name
-    rows.reject {|r| r['reason'].downcase != name.downcase}
+  def sv_rows name
+    data = @@sv_data.has_key?(name) ? @@sv_data[name] : []
   end
 
   def ec_rows rows
@@ -30,7 +41,7 @@ class Worker < Base
   end
 
   def run
-    sv = read_csv @options.sv
+    read_sv_csv @options.sv
 
     Dir.glob(File.join(@options.ec_dir,'*.csv')) do |path|
       name = File.basename path, File.extname(path)
@@ -44,7 +55,7 @@ class Worker < Base
       end
 
       ecs = ec_rows read_ec_csv(path)
-      svs = sv_rows sv, name
+      svs = sv_rows name.downcase.squeeze(' ')
 
       if svs.empty?
         err "#{name}: can't find any rows related in #{@options.sv}, skipped."
@@ -71,8 +82,8 @@ class Worker < Base
         i += 1
 
         # check if time is missing
-        time_missing ||= h['start_time'].empty?
-        time_missing ||= h['end_time'].empty?
+        time_missing ||= h['start_time'].nil?
+        time_missing ||= h['end_time'].nil?
       end
 
       if time_missing
@@ -108,6 +119,8 @@ end
   exit
 end
 @opts.parse! rescue usage
+
+@@sv_data = {}
 
 ### main
 usage if options.sv.nil?
