@@ -26,7 +26,7 @@ class Worker < Base
         time_empty ||= r[14].nil? # end_time
         break if time_empty
       end
-      err "#{name}: start/end time is empty"
+      err "#{name}: start/end time is empty" if time_empty
     end
   end
 end
