@@ -15,7 +15,18 @@ class Worker < Base
     Dir.glob(File.join(@options.input_dir,'*.csv')) do |path|
       name = File.basename path, File.extname(path)
       @stdout.info "processing #{name}"
-      err "#{name} is empty" if read_csv(path).empty?
+      data = read_csv(path)
+      if data.empty?
+        err "#{name} is empty"
+        next
+      end
+      time_empty = false
+      data.each do |r|
+        time_empty ||= r[13].nil? # start_time
+        time_empty ||= r[14].nil? # end_time
+        break if time_empty
+      end
+      err "#{name}: start/end time is empty"
     end
   end
 end
