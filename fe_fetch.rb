@@ -3,8 +3,8 @@
 require './base.rb'
 require 'uri'
 require 'open-uri'
-require 'pp'
 require 'nokogiri'
+require 'pp'
 
 URL = 'http://www.sciencedirect.com/science/journal/0304405X'
 
@@ -73,12 +73,10 @@ class Fetcher < Base
         end
       end
     end
-
   end
-
 end
 
+# log into https://auth.uq.edu.au/idp first
 f = Fetcher.new
 f.run
 
-#pp open('http://www.sciencedirect.com/science/journal/0304405X').read
