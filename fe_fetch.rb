@@ -5,9 +5,12 @@ require 'uri'
 require 'open-uri'
 require 'nokogiri'
 require 'pp'
+#require 'openssl'
 
 URL = 'http://www.sciencedirect.com/science/journal/0304405X'
 FRAG_URL_PREFIX = 'http://www.sciencedirect.com/science/frag/'
+#URL = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/journal/0304405X'
+#FRAG_URL_PREFIX = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/frag/'
 
 class String
   def is_i?
@@ -44,7 +47,7 @@ class Article
     id = url.split('/')[-1]
 
     f1_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_1"
-    @affiliation = Nokogiri::HTML(open(f1_url).read).css('ul.affiliation > li').text.strip
+    @affiliation = Nokogiri::HTML(open(f1_url).read).css('ul.affiliation > li').map {|li| li.text.strip }.join('|')
 
     f2_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_2"
     @footnote = Nokogiri::HTML(open(f2_url).read).css('dl.footnote > dd > p').text.strip
