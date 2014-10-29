@@ -9,17 +9,13 @@ require 'pp'
 
 URL = 'http://www.sciencedirect.com/science/journal/0304405X'
 FRAG_URL_PREFIX = 'http://www.sciencedirect.com/science/frag/'
-#URL = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/journal/0304405X'
+ALTER_URL = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/journal/0304405X'
 #FRAG_URL_PREFIX = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/frag/'
 
 class String
   def is_i?
     self.to_i.to_s == self
   end
-end
-
-def fetch_doc(url)
-  Nokogiri::HTML(open(url).read)
 end
 
 class Article
@@ -63,12 +59,22 @@ class Fetcher < Base
 
   def run(from, to)
     (from..to).each do |volume|
+      out = "vol#{volume}.csv"
+      # skip if this volume is already fetched
+      if File.exist? out
+        info "Vol:#{volume} fetched already (#{out})"
+        next
+      end
+
+      @csv = [['volume','issue','title','pages','authors','affiliation','footnote']]
+
       (1..10).each do |issue|
         info "volume: #{volume} - issue #{issue}"
         begin
           url = "#{URL}/#{volume}/#{issue}"
-          puts url
-          doc = fetch_doc(url)
+          #puts "[ #{url} ]"
+          info "non-restricted link: #{ALTER_URL}/#{volume}/#{issue}"
+          doc = Nokogiri::HTML(open(url).read)
 
           doc.css('ol.articleList > li.detail > ul.article').each do |article|
             a = article.css('li.title > h4 > a').first
@@ -107,6 +113,8 @@ class Fetcher < Base
           end
         end
       end
+      # save the info per volume
+      csv_out out
     end
   end
 end
@@ -125,7 +133,5 @@ to = ARGV[1].to_i
 
 # log into https://auth.uq.edu.au/idp first
 f = Fetcher.new
-f.csv = [['volume','issue','title','pages','authors','affiliation','footnote']]
 f.run(from, to)
-f.csv_out 'data.csv'
 
