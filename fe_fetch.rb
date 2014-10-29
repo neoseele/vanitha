@@ -120,7 +120,7 @@ class Fetcher < Base
 end
 
 def usage
-  puts "#{File.basename($0)} [from_volX] [to_volY]"
+  puts "Usage: #{File.basename($0)} [from_volX] [to_volY]"
   exit 1
 end
 
