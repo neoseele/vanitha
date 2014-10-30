@@ -43,9 +43,11 @@ class Article
     id = url.split('/')[-1]
 
     f1_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_1"
+    #puts "frag 1: #{f1_url}"
     @affiliation = Nokogiri::HTML(open(f1_url).read).css('ul.affiliation > li').map {|li| li.text.strip }.join('|')
 
     f2_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_2"
+    #puts "frag 2: #{f2_url}"
     @footnote = Nokogiri::HTML(open(f2_url).read).css('dl.footnote > dd > p').text.strip
   end
 
@@ -68,13 +70,14 @@ class Fetcher < Base
 
       @csv = [['volume','issue','title','pages','authors','affiliation','footnote']]
 
-      (1..10).each do |issue|
-        info "volume: #{volume} - issue #{issue}"
+      (1..5).each do |issue|
         begin
           url = "#{URL}/#{volume}/#{issue}"
-          #puts "[ #{url} ]"
-          info "non-restricted link: #{ALTER_URL}/#{volume}/#{issue}"
           doc = Nokogiri::HTML(open(url).read)
+
+          info "volume: #{volume} - issue #{issue}"
+          #info "link: #{url}"
+          info "non-restricted link: #{ALTER_URL}/#{volume}/#{issue}"
 
           doc.css('ol.articleList > li.detail > ul.article').each do |article|
             a = article.css('li.title > h4 > a').first
@@ -96,8 +99,8 @@ class Fetcher < Base
         rescue => e
           case e
           when OpenURI::HTTPError
-            # 404, which means the issue is not exist, so break the issue loop
-            break
+            # 404, some volume merges issues (i.e. 1-2, 3)
+            next
           when SocketError
             err 'socket error'
             raise e
