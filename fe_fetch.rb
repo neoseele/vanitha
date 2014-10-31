@@ -75,9 +75,9 @@ class Fetcher < Base
           url = "#{URL}/#{volume}/#{issue}"
           doc = Nokogiri::HTML(open(url).read)
 
-          info "volume: #{volume} - issue #{issue}"
-          #info "link: #{url}"
-          info "non-restricted link: #{ALTER_URL}/#{volume}/#{issue}"
+          info "Volume: #{volume} - Issue #{issue}"
+          info "URL: #{url}"
+          info "URL: (full) #{ALTER_URL}/#{volume}/#{issue}"
 
           doc.css('ol.articleList > li.detail > ul.article').each do |article|
             a = article.css('li.title > h4 > a').first

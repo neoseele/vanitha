@@ -32,7 +32,7 @@ class Base
   end
 
   def info(msg)
-    #@log.info msg
+    @log.info msg
     @stdout.info msg
   end
 
