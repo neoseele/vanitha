@@ -4,7 +4,6 @@ require './base.rb'
 require 'uri'
 require 'open-uri'
 require 'nokogiri'
-require 'pp'
 #require 'openssl'
 
 URL = 'http://www.sciencedirect.com/science/journal/0304405X'
