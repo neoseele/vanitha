@@ -19,7 +19,7 @@ class String
 end
 
 class Article
-  attr_accessor :volume, :issue, :title, :url, :pages, :authors, :parent_url
+  attr_accessor :volume, :issue, :title, :url, :pages, :authors, :keywords, :jel, :parent_url
 
   def print
     puts @title
@@ -28,6 +28,10 @@ class Article
     puts @authors
     puts @affiliation
     puts @footnote
+  end
+
+  def ul_to_s ul, delimiter=';'
+    ul.css('li > span').map {|li| li.text.strip}.join(delimiter)
   end
 
   def fetch
@@ -44,15 +48,25 @@ class Article
 
     f1_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_1"
     #puts "frag 1: #{f1_url}"
-    @affiliation = Nokogiri::HTML(open(f1_url).read).css('ul.affiliation > li').map {|li| li.text.strip }.join('|')
+    @affiliation = ul_to_s Nokogiri::HTML(open(f1_url).read).css('ul.affiliation')
 
     f2_url = "#{FRAG_URL_PREFIX}/#{id}/#{frag_code}/frag_2"
     #puts "frag 2: #{f2_url}"
-    @footnote = Nokogiri::HTML(open(f2_url).read).css('dl.footnote > dd > p').text.strip
+    frag2_doc = Nokogiri::HTML(open(f2_url).read)
+    @footnote = frag2_doc.css('dl.footnote > dd > p').text.strip
+
+    frag2_doc.css('h2.svKeywords').each do |h|
+      case h.text.strip.downcase
+      when 'keywords'
+        @keywords = ul_to_s h.next_element
+      when 'jel classification','pacs'
+        @jel = ul_to_s h.next_element
+      end
+    end
   end
 
   def to_ary
-    [@volume, @issue, @title, @pages, @authors, @affiliation, @footnote]
+    [@volume, @issue, @title, @pages, @authors, @affiliation, @footnote, @keywords, @jel]
   end
 
 end
@@ -68,7 +82,7 @@ class Fetcher < Base
         next
       end
 
-      @csv = [['volume','issue','title','pages','authors','affiliation','footnote']]
+      @csv = [['volume','issue','title','pages','authors','affiliation','footnote','keywords','JEL']]
 
       (1..5).each do |issue|
         begin
