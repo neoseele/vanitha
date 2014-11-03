@@ -7,7 +7,7 @@ require 'nokogiri'
 #require 'openssl'
 
 URL = 'http://www.sciencedirect.com/science/journal/0304405X'
-FRAG_URL_PREFIX = 'http://www.sciencedirect.com/science/frag/'
+FRAG_URL_PREFIX = 'http://www.sciencedirect.com/science/frag'
 ALTER_URL = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/journal/0304405X'
 #FRAG_URL_PREFIX = 'https://www.sciencedirect.com.ezproxy.library.uq.edu.au/science/frag/'
 
@@ -90,7 +90,7 @@ class Fetcher < Base
 
           info "Volume: #{volume} - Issue #{issue}"
           info "URL: #{url}"
-          info "URL: (full) #{ALTER_URL}/#{volume}/#{issue}"
+          #info "URL: (full) #{ALTER_URL}/#{volume}/#{issue}"
 
           doc.css('ol.articleList > li.detail > ul.article').each do |article|
             a = article.css('li.title > h4 > a').first
@@ -113,6 +113,7 @@ class Fetcher < Base
           case e
           when OpenURI::HTTPError
             # 404, some volume merges issues (i.e. 1-2, 3)
+            puts "404: page not found"
             next
           when SocketError
             err 'socket error'
