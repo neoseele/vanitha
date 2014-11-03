@@ -105,6 +105,7 @@ class Fetcher < Base
             paper.authors = article.css('li.authors').text
             paper.parent_url = url
 
+            info "Article: #{paper.url}"
             paper.fetch
             @csv << paper.to_ary
           end
